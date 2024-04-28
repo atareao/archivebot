@@ -30,6 +30,8 @@ from telegram import TelegramClient
 from register import Register
 from datetime import datetime
 from context import Context
+from iauploader import IAUploader
+from converter import Converter
 
 
 logger = logging.getLogger(__name__)
@@ -48,13 +50,16 @@ class BotException(Exception):
 
 class Bot:
     @log.debug
-    def __init__(self, token, chat_id, thread_id, register: Register,
-                 pool_time=300):
+    def __init__(self, token, chat_id, thread_id, ia_access: str,
+                 ia_secret: str, podcast: str, creator: str,
+                 register: Register, pool_time=300):
         self._pool_time = pool_time
         self._telegram_client = TelegramClient(token)
         self._token = token
         self._chat_id = int(chat_id)
         self._thread_id = int(thread_id)
+        self._iauploader = IAUploader(token, ia_access, ia_secret, podcast,
+                                      creator)
         self._register = register
         self._context = Context()
         self._read_config()
@@ -149,9 +154,8 @@ class Bot:
                     message, self._chat_id, self._thread_id)
         elif self._context.step == 5:
             if data == "Enviar":
-                pass
+                self.upload_audio()
             else:
-                # Borrar
                 self.delete_audio()
 
     @log.debug
@@ -265,5 +269,24 @@ class Bot:
                                            self._thread_id)
         self._register.delete(audio.identifier)
         self._telegram_client.send_message("Audio borrado",
+                                           self._chat_id,
+                                           self._thread_id)
+
+    @log.debug
+    def upload_audio(self):
+        audio = self._context.audio
+        file_path = audio.file_path.split("/")
+        filename = f"/data/{self._token}/voice/{file_path[-1]}"
+        logger.debug(filename)
+        outputfile = f"{os.path.splitext(filename)[0]}.mp3"
+        logger.debug(outputfile)
+        Converter.convert(filename, outputfile)
+        self._telegram_client.send_message("Convertido a mp3",
+                                           self._chat_id,
+                                           self._thread_id)
+        self._telegram_client.send_chat_action(self._chat_id, self._thread_id,
+                                               "upload_voice")
+        self._iauploader.upload(audio, outputfile)
+        self._telegram_client.send_message("Subido a Internet Archive!",
                                            self._chat_id,
                                            self._thread_id)

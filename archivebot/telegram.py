@@ -155,6 +155,17 @@ class TelegramClient:
             data.update({"message_thread_id": thread_id})
         return self._post("sendMessage", data)
 
+    def send_chat_action(self, chat_id: int, thread_id: int,
+                         action: str) -> dict:
+        data = {
+            "chat_id": chat_id,
+            "action": action,
+        }
+        if thread_id > 0:
+            data.update({"message_thread_id": thread_id})
+        return self._post("sendChatAction", data)
+
+
     @log.debug
     def _get(self, endpoint: str, params: dict = {}) -> dict:
         """Send a generic GET

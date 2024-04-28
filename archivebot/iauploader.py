@@ -43,7 +43,7 @@ class IAUploader:
         })
 
     @log.debug
-    def upload(self, audio: Audio):
+    def upload(self, audio: Audio, filename: str):
         now = datetime.now()
         metadata = {
             "title": audio.title,
@@ -55,8 +55,6 @@ class IAUploader:
             "subject": audio.tags.split(","),
             "creator": self._creator,
         }
-        file_path = audio.file_path.split("/")
-        filename = f"/data/{self._token}/voice/{file_path[-1]}"
         ia_episode = self._ia_session.get_item(audio.identifier)
         response = ia_episode.upload(filename, metadata=metadata, verbose=True)
         logger.debug(f"Response: {response}")

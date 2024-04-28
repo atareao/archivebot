@@ -41,9 +41,14 @@ def main():
     token = os.getenv("TOKEN", "")
     chat_id = os.getenv("CHAT_ID", "")
     thread_id = os.getenv("THREAD_ID", "")
+    ia_access = os.getenv("IA_ACCESS", "")
+    ia_secret = os.getenv("IA_SECRET", "")
+    podcast = os.getenv("PODCAST_NAME", "")
+    creator = os.getenv("CREATOR_NAME", "")
     database = os.getenv("DATABASE", "database.db")
     register = Register(database)
-    bot = Bot(token, chat_id, thread_id, register)
+    bot = Bot(token, chat_id, thread_id, ia_access, ia_secret, podcast,
+              creator, register)
     logger.debug("main")
     while True:
         bot.get_updates()
